@@ -1,3 +1,8 @@
+// TODO: The response returned from POST /api/users/:_id/exercises will be the user object with the exercise fields added.
+
+// TODO: You can add from, to and limit parameters to a GET /api/users/:_id/logs request to retrieve part of the log of any user. from and to are dates in yyyy-mm-dd format. limit is an integer of how many logs to send back.
+
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -176,7 +181,10 @@ app.route("/api/users/:_id/logs")
         _id: user._id,
         username: user.username, 
         count: user.exercises.length,
-        log: user.exercises
+        log: user.exercises.map((item) => ({
+           "description": item.description,
+           "duration": item.duration,
+           "date": new Date(item.date).toDateString()}))
       });
     } catch (err) {
       console.error(err);
