@@ -13,24 +13,8 @@ mongoose.connect(process.env.MONGO_URI.trim(), {
 
 /** Create Models **/
 
-// User
-
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  exercises: [{ type : mongoose.Types.ObjectId, ref: 'exercise' }],
-});
-
-const UserModel = mongoose.model("user", userSchema);
-
-// Exercise
-
-const exerciseSchema = new mongoose.Schema({
-  description: { type: String, required: true },
-  duration: { type: Number, required: true },
-  date: { type: String },
-});
-
-const ExerciseModel = mongoose.model("exercise", exerciseSchema);
+const UserModel = require(__dirname + "/models/user.model");
+const ExerciseModel = require(__dirname + "/models/exercises.model");
 
 /** Middlewares */
 
@@ -49,10 +33,6 @@ app.route("/api/hello")
   .get((req, res) => {
     res.json({ greeting: "hello API" });
 });
-
-// POST /api/users
-
-// TODO: GET /api/users (Get all users)
 
 app.route("/api/users")
   .get(async (req, res) => {
