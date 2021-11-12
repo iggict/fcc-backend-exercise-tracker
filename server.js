@@ -39,7 +39,7 @@ app.use(express.urlencoded({ extended: false })); // request parser mw
 app.use(cors({ optionsSuccessStatus: 200 })); // cors mw
 app.use(express.static("public")); // assets mw
 
-/** Routes **/
+/** Basic routes **/
 
 app.route("/")
   .get((req, res) => {
@@ -50,6 +50,8 @@ app.route("/api/hello")
   .get((req, res) => {
     res.json({ greeting: "hello API" });
 });
+
+/** /api/users **/
 
 app.route("/api/users")
   .get(async (req, res) => {
@@ -86,9 +88,10 @@ app.route("/api/users")
       console.error(err);
       res.status(500).json("Server error");
     }
-  });
+});
 
-// TODO: /api/users/:_id/exercises
+/** /api/users/:_id/exercises **/
+
 app.route("/api/users/:_id/exercises")
   .get(async (req, res) => {
     try {
@@ -161,7 +164,25 @@ app.route("/api/users/:_id/exercises")
     }
 });  
 
-// TODO: GET /api/users/:_id/logs?[from][&to][&limit]
+/** /api/users/:_id/logs?[from][&to][&limit] **/
+
+app.route("/api/users/:_id/logs")
+  .get(async (req, res) => {
+    try {
+      const user = await UserModel
+        .findById(req.params._id)
+        .populate("exercises", "-_id -__v");
+      res.json({
+        _id: user._id,
+        username: user.username, 
+        count: user.exercises.length,
+        log: user.exercises
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json("Server error");
+    }
+  })
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
