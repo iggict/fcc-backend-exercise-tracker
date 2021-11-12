@@ -14,8 +14,25 @@ mongoose.connect(process.env.MONGO_URI.trim(), {
 /** Create Models **/
 
 const UserModel = require(__dirname + "/models/user.model");
-const ExerciseModel = require(__dirname + "/models/exercises.model");
+const ExerciseModel = require(__dirname + "/models/exercise.model");
 
+/** Date functions */
+
+const getDateString = (dateString) => {
+  let date = new Date();
+  // Check if timestamp
+  if (/^\d*$/.test(dateString)) {
+    date.setTime(dateString);
+  } else {
+    date = new Date(dateString);
+  }
+  // Check if valid date
+  if (!date.getTime()) {
+    date = new Date();
+  }
+  return date.toISOString().slice(0, 10); // yyy-mm-dd
+}
+  
 /** Middlewares */
 
 app.use(express.urlencoded({ extended: false })); // request parser mw
@@ -71,7 +88,78 @@ app.route("/api/users")
     }
   });
 
-// TODO: POST /api/users/:_id/exercises
+// TODO: /api/users/:_id/exercises
+app.route("/api/users/:_id/exercises")
+  .get(async (req, res) => {
+    try {
+      const user = await UserModel.findById(req.params._id)
+        .populate({ path: "exercises" });
+      res.json(user.exercises);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json("Server error");
+    }
+  })
+  .post(async (req, res, next) => {
+    const userId = req.params._id || "";
+    const description = req.body.description || "";
+    const duration = req.body.duration || 0;
+    const date = getDateString(req.body.date);
+
+    if (!userId.trim()) {
+      res.json({ error: "The user _id is required" });    
+      return next();
+    }
+
+    if (!description.trim()) {
+      res.json({ error: "A description is required" });    
+      return next();
+    }
+
+    if (isNaN(duration) || duration <= 0) {
+      res.json({ error: "A numeric duration is required" });    
+      return next();
+    }
+
+    try {
+
+      // Get user
+      
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        res.json({ error: "There is no user with _id: " + userId });
+        return next();
+      }
+
+      // Save exercise
+
+      let exercise = new ExerciseModel({ 
+        "description": description,
+        "duration": duration,
+        "date": date,
+      });
+      await exercise.save();
+
+      // Save user
+      
+      user.exercises.push(exercise._id);
+      await user.save();
+
+      // Response data
+
+      res.json({
+        "description": description,
+        "duration": duration,
+        "date": date,
+        "user_id": userId
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json("Server error");
+    }
+});  
 
 // TODO: GET /api/users/:_id/logs?[from][&to][&limit]
 
