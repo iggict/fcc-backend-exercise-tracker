@@ -13,11 +13,24 @@ mongoose.connect(process.env.MONGO_URI.trim(), {
 
 /** Create Models **/
 
+// User
+
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true }
+  username: { type: String, required: true },
+  exercises: [{ type : mongoose.Types.ObjectId, ref: 'exercise' }],
 });
 
 const UserModel = mongoose.model("user", userSchema);
+
+// Exercise
+
+const exerciseSchema = new mongoose.Schema({
+  description: { type: String, required: true },
+  duration: { type: Number, required: true },
+  date: { type: String },
+});
+
+const ExerciseModel = mongoose.model("exercise", exerciseSchema);
 
 /** Middlewares */
 
@@ -27,43 +40,56 @@ app.use(express.static("public")); // assets mw
 
 /** Routes **/
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/views/index.html");
+app.route("/")
+  .get((req, res) => {
+    res.sendFile(__dirname + "/views/index.html");
 });
 
-app.get("/api/hello", (req, res) => {
-  res.json({ greeting: "hello API" });
+app.route("/api/hello")
+  .get((req, res) => {
+    res.json({ greeting: "hello API" });
 });
 
 // POST /api/users
 
-app.post("/api/users", async (req, res, next) => {
-  const userName = req.body.username || "";
+// TODO: GET /api/users (Get all users)
 
-  if (!userName.trim()) {
-    res.json({ error: "An username is required" });    
-    return next();
-  }
+app.route("/api/users")
+  .get(async (req, res) => {
+    try {
+      const users = await UserModel.find({});
+      res.json(users);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json("Server error");
+    }
+  })  
+  .post(async (req, res, next) => {
+    const userName = req.body.username || "";
 
-  try {
-    let user = await UserModel.findOne({ username: userName });
-
-    if (!user) {
-      user = new UserModel({ username: userName });
-      await user.save();
+    if (!userName.trim()) {
+      res.json({ error: "An username is required" });    
+      return next();
     }
 
-    res.json({
-      username: user.username,
-      _id: user._id
-    });
+    try {
+      let user = await UserModel.findOne({ username: userName });
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json("Server error");
-  }
+      if (!user) {
+        user = new UserModel({ username: userName });
+        await user.save();
+      }
 
-});
+      res.json({
+        username: user.username,
+        _id: user._id
+      });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json("Server error");
+    }
+  });
 
 // TODO: POST /api/users/:_id/exercises
 
