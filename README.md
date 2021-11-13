@@ -4,6 +4,38 @@ Challenge for the "Backend development and APIs" module of [FreeCodeCamp.org](ht
 
 ---
 
+## Response structures
+
+User
+
+    {
+        username: "fcc_test",
+        _id: "5fb5853f734231456ccb3b05"
+    }
+
+Exercise
+
+    {
+        username: "fcc_test"
+        description: "test",
+        duration: 60,
+        date: "Mon Jan 01 1990",
+        _id: "5fb5853f734231456ccb3b05"
+    }
+
+Log
+
+    {
+        username: "fcc_test",
+        count: 1,
+        _id: "5fb5853f734231456ccb3b05",
+        log: [{
+            description: "test",
+            duration: 60,
+            date: "Mon Jan 01 1990",
+        }]
+    }
+
 ## User stories
 
 - You should provide your own project, not the example URL.
