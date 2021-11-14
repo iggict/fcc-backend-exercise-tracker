@@ -1,5 +1,3 @@
-// TODO: You can add from, to and limit parameters to a GET /api/users/:_id/logs request to retrieve part of the log of any user. from and to are dates in yyyy-mm-dd format. limit is an integer of how many logs to send back.
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -22,7 +20,7 @@ const ExerciseModel = require(__dirname + "/models/exercise.model");
 
 /** Date functions */
 
-const getDateString = (dateString) => {
+const getDate = (dateString) => {
   let date = new Date();
   // Check if timestamp
   if (/^\d*$/.test(dateString)) {
@@ -98,7 +96,7 @@ app.route("/api/users/:_id/exercises").post(async (req, res, next) => {
   const userId = req.params._id || "";
   const description = req.body.description || "";
   const duration = req.body.duration || 0;
-  const date = getDateString(req.body.date);
+  const date = getDate(req.body.date);
 
   if (!userId.trim()) {
     res.json({ error: "The user _id is required" });
@@ -158,10 +156,25 @@ app.route("/api/users/:_id/exercises").post(async (req, res, next) => {
 
 app.route("/api/users/:_id/logs").get(async (req, res) => {
   try {
-    const user = await UserModel.findById(req.params._id).populate(
-      "exercises",
-      "-_id -__v"
-    );
+    const user = await UserModel
+      .findById(req.params._id)
+      .populate({
+        path:'exercises',
+        options: {
+          limit: req.query.limit
+        },
+        match: {
+          $and: [
+            {date: ((new Date(req.query.from).getTime()) 
+              ? {$gte: getDate(req.query.from)} 
+              : {$ne: "9999-99-99"})
+            },
+            {date: ((new Date(req.query.to).getTime()) 
+              ? {$lte: getDate(req.query.to)} 
+              : {$ne: "9999-99-99"})
+            }]
+        }
+    });
     res.json({
       _id: user._id,
       username: user.username,
