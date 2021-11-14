@@ -1,3 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@500&display=swap");
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0px auto;
+  padding: 0px auto;
+}
+
+html {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+body {
+  font-size: 1rem;
+  font-family: "Open Sans", sans-serif;
+  text-align: center;
+  color: rgb(80, 80, 80);
+}
+
+form {
+  margin-bottom: 25px;
+}
+
+fieldset {
+  padding: 20px;
+  border-color: rgb(100, 185, 185);
+  border-radius: 5px;
+}
+
+input {
+  display: block;
+  margin-bottom: 8px;
+  padding: 4px;
+  width: 100%;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+input[type=submit]{
+  letter-spacing: 0.05rem;
+}
+
+input[type=submit]:hover {
+  background-color: rgb(100, 185, 185);
+  border: 1px solid  rgb(60, 120, 120);
+  color: rgb(60, 70, 70);
+  cursor: pointer;
+}
+
+code {
+  font-family: monospace;
+  font-size: 0.9rem;
+  background-color: rgb(255, 231, 196);
+  padding: 2px;
+}
+
+.container {
+  width: 50%;
+  min-width: 200px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+ul.no-bullets {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/*
 * {
   box-sizing: border-box;
 }
@@ -21,8 +98,8 @@ p {
 form {
   margin-bottom: 25px;
   padding: 15px;
-  background-color: rgb(157, 124, 211);
-  display: inline-block;
+  background-color: rgb(157, 124, 111);
+  //display: inline-block;
   width: 100%;
   max-width: 340px;
   border-radius: 5px;
@@ -47,13 +124,6 @@ input[type=submit] {
   cursor: pointer;
 }
 
-input[type=submit]:hover {
-  background-color: #FFFEC4;
-}
 
-code {
-  font-family: monospace;
-  font-size: 1.2em;
-  background-color: #FFFEC4;
-  padding: 2px;
-}
+
+*/
