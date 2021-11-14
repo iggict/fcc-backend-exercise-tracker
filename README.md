@@ -8,33 +8,41 @@ Challenge for the "Backend development and APIs" module of [FreeCodeCamp.org](ht
 
 User
 
-    {
-        username: "fcc_test",
-        _id: "5fb5853f734231456ccb3b05"
-    }
+```json
+{
+  "username": "fcc_test",
+  "_id": "5fb5853f734231456ccb3b05"
+}
+```
 
 Exercise
 
-    {
-        username: "fcc_test"
-        description: "test",
-        duration: 60,
-        date: "Mon Jan 01 1990",
-        _id: "5fb5853f734231456ccb3b05"
-    }
+```json
+{
+  "username": "fcc_test",
+  "description": "test",
+  "duration": 60,
+  "date": "Mon Jan 01 1990",
+  "_id": "5fb5853f734231456ccb3b05"
+}
+```
 
 Log
 
+```json
+{
+  "username": "fcc_test",
+  "count": 1,
+  "_id": "5fb5853f734231456ccb3b05",
+  "log": [
     {
-        username: "fcc_test",
-        count: 1,
-        _id: "5fb5853f734231456ccb3b05",
-        log: [{
-            description: "test",
-            duration: 60,
-            date: "Mon Jan 01 1990",
-        }]
+      "description": "test",
+      "duration": 60,
+      "date": "Mon Jan 01 1990"
     }
+  ]
+}
+```
 
 ## User stories
 
@@ -81,3 +89,7 @@ Log
 - **from** = dates (yyyy-mm-dd);
 - **to** = dates (yyyy-mm-dd);
 - **limit** = number;
+
+```
+
+```

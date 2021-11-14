@@ -1,7 +1,4 @@
-// TODO: The response returned from POST /api/users/:_id/exercises will be the user object with the exercise fields added.
-
 // TODO: You can add from, to and limit parameters to a GET /api/users/:_id/logs request to retrieve part of the log of any user. from and to are dates in yyyy-mm-dd format. limit is an integer of how many logs to send back.
-
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -10,11 +7,13 @@ const app = express();
 
 /** Set Up Mongoose */
 
-mongoose.connect(process.env.MONGO_URI.trim(), {
-  useNewUrlParser: true,
-  useUnifiedTopology: true})
-.then(() => console.log("Connected to Mongo"))
-.catch(err => console.error(err));
+mongoose
+  .connect(process.env.MONGO_URI.trim(), {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to Mongo"))
+  .catch((err) => console.error(err));
 
 /** Create Models **/
 
@@ -36,8 +35,8 @@ const getDateString = (dateString) => {
     date = new Date();
   }
   return date.toISOString().slice(0, 10); // yyy-mm-dd
-}
-  
+};
+
 /** Middlewares */
 
 app.use(express.urlencoded({ extended: false })); // request parser mw
@@ -46,19 +45,18 @@ app.use(express.static("public")); // assets mw
 
 /** Basic routes **/
 
-app.route("/")
-  .get((req, res) => {
-    res.sendFile(__dirname + "/views/index.html");
+app.route("/").get((req, res) => {
+  res.sendFile(__dirname + "/views/index.html");
 });
 
-app.route("/api/hello")
-  .get((req, res) => {
-    res.json({ greeting: "hello API" });
+app.route("/api/hello").get((req, res) => {
+  res.json({ greeting: "hello API" });
 });
 
 /** /api/users **/
 
-app.route("/api/users")
+app
+  .route("/api/users")
   .get(async (req, res) => {
     try {
       const users = await UserModel.find({});
@@ -67,12 +65,12 @@ app.route("/api/users")
       console.error(err);
       res.status(500).json("Server error");
     }
-  })  
+  })
   .post(async (req, res, next) => {
     const userName = req.body.username || "";
 
     if (!userName.trim()) {
-      res.json({ error: "An username is required" });    
+      res.json({ error: "An username is required" });
       return next();
     }
 
@@ -86,111 +84,99 @@ app.route("/api/users")
 
       res.json({
         username: user.username,
-        _id: user._id
+        _id: user._id,
       });
-
     } catch (err) {
       console.error(err);
       res.status(500).json("Server error");
     }
-});
+  });
 
 /** /api/users/:_id/exercises **/
 
-app.route("/api/users/:_id/exercises")
-  .get(async (req, res) => {
-    try {
-      const user = await UserModel.findById(req.params._id)
-        .populate({ path: "exercises" });
-      res.json(user.exercises);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json("Server error");
-    }
-  })
-  .post(async (req, res, next) => {
-    const userId = req.params._id || "";
-    const description = req.body.description || "";
-    const duration = req.body.duration || 0;
-    const date = getDateString(req.body.date);
+app.route("/api/users/:_id/exercises").post(async (req, res, next) => {
+  const userId = req.params._id || "";
+  const description = req.body.description || "";
+  const duration = req.body.duration || 0;
+  const date = getDateString(req.body.date);
 
-    if (!userId.trim()) {
-      res.json({ error: "The user _id is required" });    
+  if (!userId.trim()) {
+    res.json({ error: "The user _id is required" });
+    return next();
+  }
+
+  if (!description.trim()) {
+    res.json({ error: "A description is required" });
+    return next();
+  }
+
+  if (isNaN(duration) || duration <= 0) {
+    res.json({ error: "A numeric duration is required" });
+    return next();
+  }
+
+  try {
+    // Get user
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      res.json({ error: "There is no user with _id: " + userId });
       return next();
     }
 
-    if (!description.trim()) {
-      res.json({ error: "A description is required" });    
-      return next();
-    }
+    // Save exercise
 
-    if (isNaN(duration) || duration <= 0) {
-      res.json({ error: "A numeric duration is required" });    
-      return next();
-    }
+    let exercise = new ExerciseModel({
+      description: description,
+      duration: duration,
+      date: date,
+    });
+    await exercise.save();
 
-    try {
+    // Save user
 
-      // Get user
-      
-      const user = await UserModel.findById(userId);
+    user.exercises.push(exercise._id);
+    await user.save();
 
-      if (!user) {
-        res.json({ error: "There is no user with _id: " + userId });
-        return next();
-      }
+    // Response data
 
-      // Save exercise
-
-      let exercise = new ExerciseModel({ 
-        "description": description,
-        "duration": duration,
-        "date": date,
-      });
-      await exercise.save();
-
-      // Save user
-      
-      user.exercises.push(exercise._id);
-      await user.save();
-
-      // Response data
-
-      res.json({
-        "description": description,
-        "duration": duration,
-        "date": date,
-        "user_id": userId
-      });
-
-    } catch (err) {
-      console.error(err);
-      res.status(500).json("Server error");
-    }
-});  
+    res.json({
+      _id: user._id,
+      username: user.username,
+      description: description,
+      duration: Number(duration),
+      date: new Date(date).toDateString(),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json("Server error");
+  }
+});
 
 /** /api/users/:_id/logs?[from][&to][&limit] **/
 
-app.route("/api/users/:_id/logs")
-  .get(async (req, res) => {
-    try {
-      const user = await UserModel
-        .findById(req.params._id)
-        .populate("exercises", "-_id -__v");
-      res.json({
-        _id: user._id,
-        username: user.username, 
-        count: user.exercises.length,
-        log: user.exercises.map((item) => ({
-           "description": item.description,
-           "duration": item.duration,
-           "date": new Date(item.date).toDateString()}))
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json("Server error");
-    }
-  })
+app.route("/api/users/:_id/logs").get(async (req, res) => {
+  try {
+    const user = await UserModel.findById(req.params._id).populate(
+      "exercises",
+      "-_id -__v"
+    );
+    res.json({
+      _id: user._id,
+      username: user.username,
+      count: user.exercises.length,
+      log: user.exercises.map((item) => ({
+        description: item.description,
+        duration: item.duration,
+        date: new Date(item.date).toDateString(),
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json("Server error");
+  }
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
